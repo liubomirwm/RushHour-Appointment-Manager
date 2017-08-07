@@ -18,6 +18,45 @@ namespace RushHour.Controllers
             return View();
         }
 
+        [HttpPost]
+        public ActionResult AddUser(RegisterViewModel viewModel)
+        {
+            if (ModelState.IsValid)
+            {
+                User user = new User()
+                {
+                    Email = viewModel.Email,
+                    Password = viewModel.Password,
+                    Name = viewModel.Name
+                };
+
+                bool hasSuccessfullySaved = true;
+                try
+                {
+                    unitOfWork.UsersRepository.Add(user);
+                    hasSuccessfullySaved = unitOfWork.Save();
+                }
+                catch (System.Data.SqlClient.SqlException)
+                {
+                    hasSuccessfullySaved = false;
+                }
+                if (hasSuccessfullySaved)
+                {
+                    TempData["SuccessfullMessage"] = "User added successfully";
+                }
+                else
+                {
+                    TempData["ErrorMessage"] = "There was a server error during the registration. Please try again!";
+                }
+
+                return RedirectToAction("ViewUsers", "Users");
+            }
+            else
+            {
+                return View(viewModel);
+            }
+        }
+
         public ActionResult ViewUsers()
         {
             IEnumerable<User> users = unitOfWork.UsersRepository.GetAll();
@@ -83,6 +122,29 @@ namespace RushHour.Controllers
             }
 
             return View(viewModel);
+        }
+
+        public ActionResult DeleteUser(int id)
+        {
+            User dbUser = unitOfWork.UsersRepository.GetById(id);
+            if (dbUser == null)
+            {
+                TempData["ErrorMessage"] = "No user with that id exists";
+                return RedirectToAction("Index", "Home");
+            }
+
+            unitOfWork.UsersRepository.Delete(dbUser);
+            bool hasSuccessfullySaved = unitOfWork.Save();
+            if (hasSuccessfullySaved)
+            {
+                TempData["SuccessfullMessage"] = "User deleted successfully";
+                return RedirectToAction("ViewUsers", "Users");
+            }
+            else
+            {
+                TempData["ErrorMessage"] = "There was a server error while trying to delete the user. Try again.";
+                return RedirectToAction("Index", "Home");
+            }
         }
     }
 }

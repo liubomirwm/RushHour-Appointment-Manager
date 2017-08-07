@@ -48,8 +48,6 @@ namespace RushHour.Controllers
         [ValidateAntiForgeryToken]
         public ActionResult Register(RegisterViewModel viewModel)
         {
-            UnitOfWork unitOfWork = new UnitOfWork();
-
             if (ModelState.IsValid)
             {
                 User user = new User()
