@@ -21,6 +21,7 @@ namespace RushHour.Controllers
         }
 
         [HttpPost]
+        [ValidateAntiForgeryToken]
         public ActionResult Login(LoginViewModel viewModel)
         {
             DataAccess.Models.User dbUser = unitOfWork.UsersRepository.GetAll(u => u.Email == viewModel.Email && u.Password == viewModel.Password).FirstOrDefault();
@@ -44,6 +45,7 @@ namespace RushHour.Controllers
         }
 
         [HttpPost]
+        [ValidateAntiForgeryToken]
         public ActionResult Register(RegisterViewModel viewModel)
         {
             UnitOfWork unitOfWork = new UnitOfWork();
@@ -117,6 +119,7 @@ namespace RushHour.Controllers
 
         [HttpPost]
         [ActionName("EditProfile")]
+        [ValidateAntiForgeryToken]
         public ActionResult Edit(EditProfileViewModel viewModel)
         {
             if (ModelState.IsValid)

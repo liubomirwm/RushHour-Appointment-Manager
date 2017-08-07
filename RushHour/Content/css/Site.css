@@ -22,3 +22,15 @@ select,
 textarea {
     max-width: 280px;
 }
+
+#activitiesTable, #activitiesTable th, #activitiesTable td {border: 1px solid black;}
+#activitiesTable th, #activitiesTable td {padding: 5px;}
+#activitiesTable th {text-align: center;}
+
+#activitiesTable, #activitiesTable th, #activitiesTable td {border: 1px solid black;}
+#activitiesTable th, #activitiesTable td {padding: 5px;}
+#activitiesTable th {text-align: center;}
+
+#usersTable, #usersTable th, #usersTable td {border: 1px solid black;}
+#usersTable th, #usersTable td {padding: 5px;}
+#usersTable th {text-align: center;}

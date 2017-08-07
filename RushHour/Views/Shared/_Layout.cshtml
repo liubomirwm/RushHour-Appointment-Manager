@@ -5,7 +5,7 @@
 <head>
     <meta charset="utf-8" />
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>@ViewBag.Title - My ASP.NET Application</title>
+    <title>@ViewBag.Title | RushHour Appointment Manager</title>
     <script src="~/Scripts/jquery-3.1.1.min.js"></script>
     <script src="~/Scripts/jquery.validate.min.js"></script>
     @*<script src="~/Scripts/jquery.validate-vsdoc.js"></script>*@
@@ -27,13 +27,23 @@
                 </button>
                 @Html.ActionLink("RushHour Event Manager", "Index", "Home", new { area = "" }, new { @class = "navbar-brand" })
             </div>
+            @{
+                LoginUserSession currentSession = LoginUserSession.Current;
+            }
             <div class="navbar-collapse collapse">
-                @if (LoginUserSession.Current.IsAuthenticated)
+                @if (currentSession.IsAuthenticated && currentSession.IsAdmin)
                 {
                     <ul class="nav navbar-nav">
                         <li>@Html.ActionLink("Edit profile", "EditProfile", "Account")</li>
-                        <li>@Html.ActionLink("About", "About", "Home")</li>
-                        <li>@Html.ActionLink("Contact", "Contact", "Home")</li>
+                        <li>@Html.ActionLink("Manage activities", "ViewActivities", "Activities")</li>
+                        <li>@Html.ActionLink("Manage users", "ViewUsers", "Users")</li>
+                    </ul>
+                }
+                else if (currentSession.IsAuthenticated)
+                {
+                    <ul class="nav navbar-nav">
+                        <li>@Html.ActionLink("Edit profile", "EditProfile", "Account")</li>
+                        <li>@Html.ActionLink("Manage appointments", "View","Appointments")</li>
                     </ul>
                 }
 

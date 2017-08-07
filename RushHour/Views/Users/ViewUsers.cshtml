@@ -1,0 +1,33 @@
+﻿@using RushHour.ViewModels;
+@model IEnumerable<ViewUsersViewModel>
+@{
+    ViewBag.Title = "ViewUsers";
+}
+
+<h2>Showing list of registered users</h2>
+
+@Html.ActionLink("Add a new user", "AddUser", "Users")
+<br />
+<br />
+<table id="usersTable">
+    <thead>
+        <tr>
+            <th>Email</th>
+            <th>Name</th>
+            <th>Is Admin</th>
+            <th colspan="2">Actions</th>
+        </tr>
+    </thead>
+    <tbody>
+        @foreach (ViewUsersViewModel user in Model)
+            {
+            <tr>
+                <td>@user.Email</td>
+                <td>@user.Name</td>
+                <td>@user.IsAdmin</td>
+                <td>@Html.ActionLink("Edit", "EditUser", "Users", new { id = user.UserId }, null)</td>
+                <td>@Html.ActionLink("Delete", "DeleteUser", "Activities", new { id = user.UserId }, null)</td>
+            </tr>
+        }
+    </tbody>
+</table>

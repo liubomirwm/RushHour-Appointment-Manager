@@ -26,7 +26,7 @@ namespace Repository
 
         public virtual void Delete(T entity)
         {
-            throw new NotImplementedException();
+            context.Entry(entity).State = EntityState.Deleted;
         }
 
         public virtual void Edit(T entity)

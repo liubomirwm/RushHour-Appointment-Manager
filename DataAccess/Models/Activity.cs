@@ -11,11 +11,14 @@ namespace DataAccess.Models
     public class Activity
     {
         public int ActivityId { get; set; }
+
         [Required]
         [StringLength(250)]
         public string Name { get; set; }
+
         [Required]
         public double Duration { get; set; }
+
         [Required]
         public decimal Price { get; set; }
 

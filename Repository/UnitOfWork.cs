@@ -14,6 +14,7 @@ namespace Repository
         #region Fields/Members
         private RushHourContext context;
         private UsersRepository usersRepository;
+        private ActivitiesRepository activitiesRepository;
         #endregion
 
         #region Constructors
@@ -33,6 +34,18 @@ namespace Repository
                     this.usersRepository = new UsersRepository(this.context);
                 }
                 return this.usersRepository;
+            }
+        }
+
+        public ActivitiesRepository ActivitiesRepository
+        {
+            get
+            {
+                if (this.activitiesRepository == null)
+                {
+                    this.activitiesRepository = new ActivitiesRepository(this.context);
+                }
+                return this.activitiesRepository;
             }
         }
         #endregion
