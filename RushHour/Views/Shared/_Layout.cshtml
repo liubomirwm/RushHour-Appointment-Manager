@@ -6,15 +6,17 @@
     <meta charset="utf-8" />
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>@ViewBag.Title | RushHour Appointment Manager</title>
+    <link rel="stylesheet" href="~/Content/css/bootstrap.min.css" />
+    <link rel="stylesheet" href="~/Content/css/bootstrap-theme.css" />
+    <link rel="stylesheet" href="~/Content/css/Site.css" />
+    <link href="~/Content/css/bootstrap-datetimepicker.min.css" rel="stylesheet" />
     <script src="~/Scripts/jquery-3.1.1.min.js"></script>
     <script src="~/Scripts/jquery.validate.min.js"></script>
     @*<script src="~/Scripts/jquery.validate-vsdoc.js"></script>*@
     <script src="~/Scripts/jquery.validate.unobtrusive.min.js"></script>
+    <script src="~/Scripts/moment.min.js"></script>
     <script src="~/Scripts/bootstrap.min.js"></script>
-    <link rel="stylesheet" href="~/Content/css/bootstrap.min.css" />
-    <link rel="stylesheet" href="~/Content/css/bootstrap-theme.css" />
-    <link rel="stylesheet" href="~/Content/css/Site.css" />
-
+    <script src="~/Scripts/bootstrap-datetimepicker.min.js"></script>
 </head>
 <body>
     <div class="navbar navbar-inverse navbar-fixed-top">
@@ -43,7 +45,7 @@
                 {
                     <ul class="nav navbar-nav">
                         <li>@Html.ActionLink("Edit profile", "EditProfile", "Account")</li>
-                        <li>@Html.ActionLink("Manage appointments", "View","Appointments")</li>
+                        <li>@Html.ActionLink("Manage appointments", "ViewAppointments", "Appointments")</li>
                     </ul>
                 }
 

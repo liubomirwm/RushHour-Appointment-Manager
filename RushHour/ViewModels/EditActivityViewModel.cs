@@ -15,7 +15,7 @@ namespace RushHour.ViewModels
         public string Name { get; set; }
 
         [Required(ErrorMessage = "Duration is a required field")]
-        [Display(Name = "Duration (in hours)")]
+        [Display(Name = "Duration (in minutes)")]
         public double Duration { get; set; }
 
         [Required(ErrorMessage = "Price is a required field")]

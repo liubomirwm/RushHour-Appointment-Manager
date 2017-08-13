@@ -22,6 +22,6 @@ namespace DataAccess.Models
         [Required]
         public decimal Price { get; set; }
 
-        public ICollection<Appointment> Appointments { get; set; }
+        public virtual ICollection<Appointment> Appointments { get; set; }
     }
 }

@@ -3,6 +3,7 @@ using System.Collections.Generic;
 using System.ComponentModel.DataAnnotations;
 using System.Linq;
 using System.Web;
+using System.Web.Mvc;
 
 namespace RushHour.ViewModels
 {
@@ -13,6 +14,7 @@ namespace RushHour.ViewModels
         [Required(ErrorMessage = "Email address is required.")]
         [StringLength(100, ErrorMessage = "Email address cannot be greater than 100 characters.")]
         [EmailAddress]
+        [Remote("IsExistingEmail", "Account", AdditionalFields = "acceptOwnEmail, UserId", ErrorMessage = "That email address is already registered in the system. Try with a different one.")]
         public string Email { get; set; }
 
         [Required(ErrorMessage = "Name is required.")]

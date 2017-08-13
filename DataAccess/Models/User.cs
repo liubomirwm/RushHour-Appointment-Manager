@@ -30,7 +30,7 @@ namespace DataAccess.Models
         [Required]
         public bool IsAdmin { get; set; }
 
-        public ICollection<Appointment> Appointments { get; set; }
+        public virtual ICollection<Appointment> Appointments { get; set; }
 
     }
 }

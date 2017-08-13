@@ -90,9 +90,15 @@ namespace RushHour.Controllers
             return RedirectToAction("Index", "Home");
         }
         [HttpGet]
-        public JsonResult IsExistingEmail(string Email, bool acceptOwnEmail = false)
+        public JsonResult IsExistingEmail(string Email, bool acceptOwnEmail = false, int UserId = 0) //You better don't change UserId to userId ;)
         {
-            if (acceptOwnEmail)
+            if (acceptOwnEmail && LoginUserSession.Current.IsAdmin)
+            {
+                string currentEmail = unitOfWork.UsersRepository.GetById(UserId).Email;
+                bool isExistingEmail = unitOfWork.UsersRepository.GetAll().Any(u => u.Email == Email && Email != currentEmail);
+                return Json(!isExistingEmail, JsonRequestBehavior.AllowGet);
+            }
+            else if (acceptOwnEmail)
             {
                 bool isExistingEmail = unitOfWork.UsersRepository.GetAll().Any(u => u.Email == Email && Email != LoginUserSession.Current.Email);
                 return Json(!isExistingEmail, JsonRequestBehavior.AllowGet);

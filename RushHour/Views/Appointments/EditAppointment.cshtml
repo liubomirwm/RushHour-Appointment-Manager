@@ -1,0 +1,120 @@
+﻿@using RushHour.ViewModels
+@model EditAppointmentViewModel
+@{
+    ViewBag.Title = "Edit Appointment";
+}
+
+<h2>Edit appointment</h2>
+
+@using (Html.BeginForm("EditAppointment", "Appointments", FormMethod.Post, new { id = "edit-appointment-form", name = "edit-appointment-form" }))
+{
+    @Html.AntiForgeryToken()
+
+    @Html.HiddenFor(model => model.AppointmentId);
+    <div class="form-horizontal">
+        <h4>Select time and add activies for the appointment</h4>
+        <hr />
+        @Html.ValidationSummary(true, "", new { @class = "text-danger" })
+
+        <div class="form-group">
+            @Html.LabelFor(model => model.StartDateTime, htmlAttributes: new { @class = "control-label col-md-2" })
+            <div class="col-md-10">
+                <div class="container">
+                    <div class="row">
+                        <div class='col-sm-3'>
+                            <div class="form-group">
+                                <div class='input-group date' id='datetimepicker1'>
+                                    <input type="text" name="StartDateTime" class="form-control" />
+                                    <span class="input-group-addon">
+                                        <span class="glyphicon glyphicon-calendar"></span>
+                                    </span>
+                                </div>
+                            </div>
+                        </div>
+                        <script type="text/javascript">
+                            $(function () {
+                                $('#datetimepicker1').datetimepicker({
+                                    format: "YYYY-MM-DD HH:mm",
+                                    defaultDate: new Date('@Model.StartDateTime.ToString("yyyy-MM-dd HH:mm")')
+                                });
+                            });
+                        </script>
+                    </div>
+                </div>
+
+                @Html.ValidationMessageFor(model => model.StartDateTime, "", new { @class = "text-danger" })
+            </div>
+        </div>
+
+        <div class="form-group">
+            @Html.LabelFor(model => model.EndDateTime, htmlAttributes: new { @class = "control-label col-md-2" })
+            <div class="col-md-10">
+                <div class="container">
+                    <div class="row">
+                        <div class='col-sm-3'>
+                            <div class="form-group">
+                                <div class='input-group date' id='datetimepicker2'>
+                                    <input type="text" name="EndDateTime" disabled="disabled" class="form-control" />
+                                    <span class="input-group-addon">
+                                        <span class="glyphicon glyphicon-calendar"></span>
+                                    </span>
+                                </div>
+                            </div>
+                        </div>
+                        <script type="text/javascript">
+                            $(function () {
+                                $('#datetimepicker2').datetimepicker({
+                                    format: "YYYY-MM-DD HH:mm",
+                                    defaultDate: new Date('@Model.EndDateTime.ToString("yyyy-MM-dd HH:mm")')
+                                });
+                            });
+                        </script>
+                    </div>
+                </div>
+
+                @Html.ValidationMessageFor(model => model.EndDateTime, "", new { @class = "text-danger" })
+            </div>
+        </div>
+    </div>
+}
+
+<table id="appointmentsTable">
+    <thead>
+        <tr>
+            <th>Include in<br />appointment</th>
+            <th>Name</th>
+            <th>Duration</th>
+            <th>Price</th>
+        </tr>
+    </thead>
+    <tbody>
+        @foreach (ActivityRow activityRow in Model.activityRows)
+        {
+            if (activityRow.isChecked)
+            {
+                <tr>
+                    <td><input type="checkbox" form="edit-appointment-form" name="CheckedRows" value="@activityRow.activity.ActivityId" checked="checked" /></td>
+                    <td>@activityRow.activity.Name</td>
+                    <td>@(activityRow.activity.Duration + " minutes")</td>
+                    <td>@(activityRow.activity.Price + " $")</td>
+                </tr>
+            }
+            else
+            {
+                <tr>
+                    <td><input type="checkbox" form="edit-appointment-form" name="CheckedRows" value="@activityRow.activity.ActivityId" /></td>
+                    <td>@activityRow.activity.Name</td>
+                    <td>@(activityRow.activity.Duration + " minutes")</td>
+                    <td>@(activityRow.activity.Price + " $")</td>
+                </tr>
+            }
+
+        }
+    </tbody>
+</table>
+
+<div class="form-group">
+    <div class="col-md-offset-0 col-md-10">
+        <input type="submit" value="Save" form="edit-appointment-form" class="btn btn-default" />
+    </div>
+</div>

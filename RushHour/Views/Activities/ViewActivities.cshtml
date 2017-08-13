@@ -21,7 +21,7 @@ else
         <thead>
             <tr>
                 <th>Activity name</th>
-                <th>Duration (in hours)</th>
+                <th>Duration</th>
                 <th>Price</th>
                 <th colspan="2">Actions</th>
             </tr>
@@ -31,7 +31,7 @@ else
             {
                 <tr>
                     <td>@activity.Name</td>
-                    <td>@(activity.Duration + " Hours")</td>
+                    <td>@(activity.Duration + " Minutes")</td>
                     <td>@(activity.Price + " Лв.")</td>
                     <td>@Html.ActionLink("Edit", "EditActivity", "Activities", new { id = activity.ActivityId }, null)</td>
                     <td>@Html.ActionLink("Delete", "DeleteActivity", "Activities", new { id = activity.ActivityId }, null)</td>

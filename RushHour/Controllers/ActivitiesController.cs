@@ -12,6 +12,7 @@ namespace RushHour.Controllers
     public class ActivitiesController : Controller
     {
         UnitOfWork unitOfWork = new UnitOfWork();
+
         public ActionResult ViewActivities()
         {
             IEnumerable<Activity> activities = unitOfWork.ActivitiesRepository.GetAll();

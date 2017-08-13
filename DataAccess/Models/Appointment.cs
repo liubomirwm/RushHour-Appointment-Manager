@@ -10,13 +10,23 @@ namespace DataAccess.Models
     public class Appointment
     {
         public int AppointmentId { get; set; }
+
         [Required]
         public DateTime StartDateTime { get; set; }
+
         [Required]
         public DateTime EndDateTime { get; set; }
+        
+        [Required]
+        public bool IsCancelled { get; set; }
+
         public int UserId { get; set; }
 
-        public User User { get; set; }
-        public ICollection<Activity> Activities { get; set; }
+        public virtual ICollection<Activity> Activities { get; set; }
+
+        public Appointment()
+        {
+            this.Activities = new List<Activity>();
+        }
     }
 }

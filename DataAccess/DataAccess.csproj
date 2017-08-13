@@ -81,6 +81,10 @@
     <Compile Include="Migrations\201708031348376_Add IsAdmin boolean to user entity.Designer.cs">
       <DependentUpon>201708031348376_Add IsAdmin boolean to user entity.cs</DependentUpon>
     </Compile>
+    <Compile Include="Migrations\201708110705526_Add IsCancelled boolean to Appointment.cs" />
+    <Compile Include="Migrations\201708110705526_Add IsCancelled boolean to Appointment.Designer.cs">
+      <DependentUpon>201708110705526_Add IsCancelled boolean to Appointment.cs</DependentUpon>
+    </Compile>
     <Compile Include="Migrations\Configuration.cs" />
     <Compile Include="Models\Activity.cs" />
     <Compile Include="Models\Appointment.cs" />
@@ -104,6 +108,9 @@
     </EmbeddedResource>
     <EmbeddedResource Include="Migrations\201708031348376_Add IsAdmin boolean to user entity.resx">
       <DependentUpon>201708031348376_Add IsAdmin boolean to user entity.cs</DependentUpon>
+    </EmbeddedResource>
+    <EmbeddedResource Include="Migrations\201708110705526_Add IsCancelled boolean to Appointment.resx">
+      <DependentUpon>201708110705526_Add IsCancelled boolean to Appointment.cs</DependentUpon>
     </EmbeddedResource>
   </ItemGroup>
   <Import Project="$(MSBuildToolsPath)\Microsoft.CSharp.targets" />

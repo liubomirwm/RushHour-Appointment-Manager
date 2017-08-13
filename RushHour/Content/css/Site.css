@@ -34,3 +34,7 @@ textarea {
 #usersTable, #usersTable th, #usersTable td {border: 1px solid black;}
 #usersTable th, #usersTable td {padding: 5px;}
 #usersTable th {text-align: center;}
+
+#appointmentsTable, #appointmentsTable th, #appointmentsTable td {border: 1px solid black;}
+#appointmentsTable th, #appointmentsTable td {padding: 5px;}
+#appointmentsTable th {text-align: center;}

@@ -15,6 +15,7 @@ namespace Repository
         private RushHourContext context;
         private UsersRepository usersRepository;
         private ActivitiesRepository activitiesRepository;
+        private AppointmentsRepository appointmentsRepository;
         #endregion
 
         #region Constructors
@@ -46,6 +47,18 @@ namespace Repository
                     this.activitiesRepository = new ActivitiesRepository(this.context);
                 }
                 return this.activitiesRepository;
+            }
+        }
+
+        public AppointmentsRepository AppointmentsRepository
+        {
+            get
+            {
+                if (this.appointmentsRepository == null)
+                {
+                    this.appointmentsRepository = new AppointmentsRepository(this.context);
+                }
+                return this.appointmentsRepository;
             }
         }
         #endregion

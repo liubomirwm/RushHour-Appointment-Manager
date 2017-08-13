@@ -15,7 +15,7 @@ namespace RushHour.ViewModels
         public string Name { get; set; }
 
         [Required(ErrorMessage = "Duration is required")]
-        [Display(Name = "Duration (in Hours)")]
+        [Display(Name = "Duration (in Minutes)")]
         public double Duration { get; set; }
 
         [Required]
