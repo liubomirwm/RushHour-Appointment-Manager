@@ -7,6 +7,8 @@ using System.Web.Mvc;
 using DataAccess.Models;
 using Repository;
 using RushHour.Helpers;
+using RushHour.Attributes;
+using RushHour.Enums;
 
 namespace RushHour.Controllers
 {
@@ -14,7 +16,7 @@ namespace RushHour.Controllers
     {
         UnitOfWork unitOfWork = new UnitOfWork();
 
-        // GET: Account
+        [CustomAuthorize(CustomAuthorizeEnum.AnonymousUser)]
         public ActionResult Login()
         {
             return View();
@@ -22,22 +24,29 @@ namespace RushHour.Controllers
 
         [HttpPost]
         [ValidateAntiForgeryToken]
+        [CustomAuthorize(CustomAuthorizeEnum.AnonymousUser)]
         public ActionResult Login(LoginViewModel viewModel)
         {
-            DataAccess.Models.User dbUser = unitOfWork.UsersRepository.GetAll(u => u.Email == viewModel.Email && u.Password == viewModel.Password).FirstOrDefault();
-            if (dbUser != null)
+            if (ModelState.IsValid)
             {
-                LoginUserSession.Current.SetCurrentUser(dbUser.UserId, dbUser.Email, dbUser.Name, dbUser.IsAdmin);
-                return RedirectToAction("Index", "Home");
+                DataAccess.Models.User dbUser = unitOfWork.UsersRepository.GetAll(u => u.Email == viewModel.Email && u.Password == viewModel.Password).FirstOrDefault();
+                if (dbUser != null)
+                {
+                    LoginUserSession.Current.SetCurrentUser(dbUser.UserId, dbUser.Email, dbUser.Name, dbUser.IsAdmin);
+                    return RedirectToAction("Index", "Home");
 
+                }
+                else
+                {
+                    ModelState.AddModelError("wrongCredentials", "Wrong password or not existing account.");
+                    return View(viewModel);
+                }
             }
-            else
-            {
-                ModelState.AddModelError("wrongCredentials", "Wrong password or not existing account.");
-                return View(viewModel);
-            }
+
+            return View(viewModel);
         }
 
+        [CustomAuthorize(CustomAuthorizeEnum.AnonymousUser)]
         public ActionResult Register()
         {
             RegisterViewModel viewModel = new RegisterViewModel();
@@ -46,6 +55,7 @@ namespace RushHour.Controllers
 
         [HttpPost]
         [ValidateAntiForgeryToken]
+        [CustomAuthorize(CustomAuthorizeEnum.AnonymousUser)]
         public ActionResult Register(RegisterViewModel viewModel)
         {
             if (ModelState.IsValid)
@@ -84,12 +94,14 @@ namespace RushHour.Controllers
             }
         }
 
+        [CustomAuthorize(CustomAuthorizeEnum.Admin | CustomAuthorizeEnum.NonAdmin)]
         public ActionResult Logout()
         {
             LoginUserSession.Current.Logout();
             return RedirectToAction("Index", "Home");
         }
         [HttpGet]
+        [CustomAuthorize(CustomAuthorizeEnum.Everyone)]
         public JsonResult IsExistingEmail(string Email, bool acceptOwnEmail = false, int UserId = 0) //You better don't change UserId to userId ;)
         {
             if (acceptOwnEmail && LoginUserSession.Current.IsAdmin)
@@ -111,6 +123,7 @@ namespace RushHour.Controllers
         }
 
         [ActionName("EditProfile")]
+        [CustomAuthorize(CustomAuthorizeEnum.Admin | CustomAuthorizeEnum.NonAdmin)]
         public ActionResult Edit()
         {
             User dbUser = new User();
@@ -118,12 +131,14 @@ namespace RushHour.Controllers
             EditProfileViewModel viewModel = new EditProfileViewModel();
             viewModel.Email = dbUser.Email;
             viewModel.Name = dbUser.Name;
+            viewModel.UserId = LoginUserSession.Current.UserId;
             return View("Edit", viewModel);
         }
 
         [HttpPost]
         [ActionName("EditProfile")]
         [ValidateAntiForgeryToken]
+        [CustomAuthorize(CustomAuthorizeEnum.Admin | CustomAuthorizeEnum.NonAdmin)]
         public ActionResult Edit(EditProfileViewModel viewModel)
         {
             if (ModelState.IsValid)

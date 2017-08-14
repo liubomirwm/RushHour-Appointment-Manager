@@ -6,6 +6,7 @@ using System.Web;
 using System.Web.Mvc;
 using System.Web.Optimization;
 using System.Web.Routing;
+using RushHour.Attributes;
 
 namespace RushHour
 {
@@ -16,6 +17,7 @@ namespace RushHour
             AreaRegistration.RegisterAllAreas();
             BundleConfig.RegisterBundles(BundleTable.Bundles);
             RouteConfig.RegisterRoutes(RouteTable.Routes);
+            GlobalFilters.Filters.Add(new CustomAuthorizeAttribute(Enums.CustomAuthorizeEnum.Default));
         }
     }
 }

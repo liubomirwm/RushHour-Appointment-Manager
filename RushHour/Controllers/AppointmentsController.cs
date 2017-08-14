@@ -1,5 +1,6 @@
 ﻿using DataAccess.Models;
 using Repository;
+using RushHour.Attributes;
 using RushHour.Helpers;
 using RushHour.ViewModels;
 using System;
@@ -14,6 +15,7 @@ namespace RushHour.Controllers
     {
         UnitOfWork unitOfWork = new UnitOfWork();
 
+        [CustomAuthorize(Enums.CustomAuthorizeEnum.NonAdmin)]
         public ActionResult AddAppointment()
         {
             IEnumerable<Activity> dbActivities = unitOfWork.ActivitiesRepository.GetAll();
@@ -21,8 +23,8 @@ namespace RushHour.Controllers
             List<ActivityRow> activityRows = new List<ActivityRow>();
             AddAppointmentViewModel viewModel = new AddAppointmentViewModel();
             DateTime currentTime = DateTime.Now;
-            viewModel.StartDateTime = currentTime;//String.Concat(currentTime.Year, "-", String.Format("{0:00}", currentTime.Month), "-", String.Format("{0:00}", currentTime.Day), "T", String.Format("{0:00}", currentTime.Hour), ":",
-                //String.Format("{0:00}", currentTime.Minute)/*, ":", String.Format("{0:00}", currentTime.Second)*/);
+            viewModel.StartDateTime = currentTime;
+            viewModel.EndDateTime = currentTime;
 
             foreach (Activity activity in dbActivities)
             {
@@ -38,41 +40,57 @@ namespace RushHour.Controllers
 
         [HttpPost]
         [ValidateAntiForgeryToken]
+        [CustomAuthorize(Enums.CustomAuthorizeEnum.NonAdmin)]
         public ActionResult AddAppointment(AddAppointmentViewModel viewModel)
         {
-            Appointment appointment = new Appointment();
-
-            double summedMinutes = 0;
-            List<Activity> activities = unitOfWork.ActivitiesRepository.GetAll(a => viewModel.CheckedRows.Contains(a.ActivityId)).ToList();
-            foreach (Activity activity in activities)
+            if (ModelState.IsValid)
             {
-                summedMinutes += activity.Duration;
-                appointment.Activities.Add(activity);
+                Appointment appointment = new Appointment();
+
+                double summedMinutes = 0;
+                List<Activity> activities = unitOfWork.ActivitiesRepository.GetAll(a => viewModel.CheckedRows.Contains(a.ActivityId)).ToList();
+                foreach (Activity activity in activities)
+                {
+                    summedMinutes += activity.Duration;
+                    appointment.Activities.Add(activity);
+                }
+
+                DateTime startDateTime = viewModel.StartDateTime;
+                appointment.StartDateTime = startDateTime;
+                TimeSpan summedDuration = TimeSpan.FromMinutes(summedMinutes);
+                DateTime endDateTime = startDateTime.Add(summedDuration);
+                appointment.EndDateTime = endDateTime;
+                appointment.UserId = LoginUserSession.Current.UserId;
+                unitOfWork.AppointmentsRepository.Add(appointment);
+                bool hasSavedSuccessfully = unitOfWork.Save();
+                if (hasSavedSuccessfully)
+                {
+                    TempData["SuccessfullMessage"] = "Appointment added successfully";
+                    return RedirectToAction("ViewAppointments", "Appointments");
+                }
+                else
+                {
+                    TempData["ErrorMessage"] = "There was a server error while adding the appointment.";
+                    return RedirectToAction("Index", "Home");
+                }
             }
 
-            DateTime startDateTime = viewModel.StartDateTime;
-            appointment.StartDateTime = startDateTime;
-            TimeSpan summedDuration = TimeSpan.FromMinutes(summedMinutes);
-            DateTime endDateTime = startDateTime.Add(summedDuration);
-            appointment.EndDateTime = endDateTime;
-            appointment.UserId = LoginUserSession.Current.UserId;
-            unitOfWork.AppointmentsRepository.Add(appointment);
-            bool hasSavedSuccessfully = unitOfWork.Save();
-            if (hasSavedSuccessfully)
+            return View(viewModel);
+        }
+
+        [CustomAuthorize(Enums.CustomAuthorizeEnum.Admin | Enums.CustomAuthorizeEnum.NonAdmin)]
+        public ActionResult ViewAppointments()
+        {
+            List<Appointment> appointments = new List<Appointment>();
+            if (LoginUserSession.Current.IsAdmin)
             {
-                TempData["SuccessfullMessage"] = "Appointment added successfully";
-                return RedirectToAction("ViewAppointments", "Appointments");
+                appointments = unitOfWork.AppointmentsRepository.GetAll().ToList();
             }
             else
             {
-                TempData["ErrorMessage"] = "There was a server error while adding the appointment.";
-                return RedirectToAction("Index", "Home");
+                appointments = unitOfWork.AppointmentsRepository.GetAll(a => a.UserId == LoginUserSession.Current.UserId).ToList();
             }
-        }
 
-        public ActionResult ViewAppointments()
-        {
-            List<Appointment> appointments = unitOfWork.AppointmentsRepository.GetAll(a => a.UserId == LoginUserSession.Current.UserId).ToList();
             List<ViewAppointmentsViewModel> viewModels = new List<ViewAppointmentsViewModel>();
             foreach (Appointment appointment in appointments)
             {
@@ -88,6 +106,7 @@ namespace RushHour.Controllers
             return View(viewModels);
         }
 
+        [CustomAuthorize(Enums.CustomAuthorizeEnum.NonAdmin)]
         public ActionResult EditAppointment(int id)
         {
             Appointment dbAppointment = unitOfWork.AppointmentsRepository.GetById(id);
@@ -127,6 +146,7 @@ namespace RushHour.Controllers
 
         [HttpPost]
         [ValidateAntiForgeryToken]
+        [CustomAuthorize(Enums.CustomAuthorizeEnum.NonAdmin)]
         public ActionResult EditAppointment(EditAppointmentViewModel viewModel)
         {
             if (ModelState.IsValid)
@@ -164,6 +184,7 @@ namespace RushHour.Controllers
             return View(viewModel);
         }
 
+        [CustomAuthorize(Enums.CustomAuthorizeEnum.NonAdmin)]
         public ActionResult CancelAppointment(int id)
         {
             Appointment dbAppointment = unitOfWork.AppointmentsRepository.GetById(id);

@@ -13,6 +13,7 @@
     <div class="form-horizontal">
         <hr />
         @Html.ValidationSummary(true, "", new { @class = "text-danger" })
+        <input type="hidden" name="UserId" id="UserId" value="@Model.UserId"/>
         <div class="form-group">
             @Html.LabelFor(model => model.Email, htmlAttributes: new { @class = "control-label col-md-2" })
             <div class="col-md-10">

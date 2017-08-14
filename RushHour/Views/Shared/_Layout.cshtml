@@ -27,7 +27,7 @@
                     <span class="icon-bar"></span>
                     <span class="icon-bar"></span>
                 </button>
-                @Html.ActionLink("RushHour Event Manager", "Index", "Home", new { area = "" }, new { @class = "navbar-brand" })
+                @Html.ActionLink("RushHour Appointment Manager", "Index", "Home", new { area = "" }, new { @class = "navbar-brand" })
             </div>
             @{
                 LoginUserSession currentSession = LoginUserSession.Current;
@@ -39,6 +39,7 @@
                         <li>@Html.ActionLink("Edit profile", "EditProfile", "Account")</li>
                         <li>@Html.ActionLink("Manage activities", "ViewActivities", "Activities")</li>
                         <li>@Html.ActionLink("Manage users", "ViewUsers", "Users")</li>
+                        <li>@Html.ActionLink("View appointments", "ViewAppointments", "Appointments")</li>
                     </ul>
                 }
                 else if (currentSession.IsAuthenticated)
@@ -73,7 +74,7 @@
         @RenderBody()
         <hr />
         <footer>
-            <p>&copy; @DateTime.Now.Year - RushHour event manager</p>
+            <p>&copy; @DateTime.Now.Year - RushHour appointment manager</p>
         </footer>
     </div>
     @RenderSection("scripts", required: false)
