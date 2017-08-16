@@ -7,13 +7,18 @@ using System.Linq;
 using System.Web;
 using System.Web.Mvc;
 using RushHour.Attributes;
+using Services;
 
 namespace RushHour.Controllers
 {
     [CustomAuthorize(Enums.CustomAuthorizeEnum.Admin)]
     public class UsersController : Controller
     {
-        UnitOfWork unitOfWork = new UnitOfWork();
+        private UsersService usersService;
+        public UsersController()
+        {
+            this.usersService = new UsersService(new ModelStateWrapper(this.ModelState), new UnitOfWork());
+        }
 
         public ActionResult AddUser()
         {
@@ -24,7 +29,7 @@ namespace RushHour.Controllers
         [ValidateAntiForgeryToken]
         public ActionResult AddUser(RegisterViewModel viewModel)
         {
-            if (ModelState.IsValid)
+            if (usersService.IsValidModelState())
             {
                 User user = new User()
                 {
@@ -36,8 +41,7 @@ namespace RushHour.Controllers
                 bool hasSuccessfullySaved = true;
                 try
                 {
-                    unitOfWork.UsersRepository.Add(user);
-                    hasSuccessfullySaved = unitOfWork.Save();
+                    hasSuccessfullySaved = usersService.AddUser(user);
                 }
                 catch (System.Data.SqlClient.SqlException)
                 {
@@ -62,7 +66,7 @@ namespace RushHour.Controllers
 
         public ActionResult ViewUsers()
         {
-            IEnumerable<User> users = unitOfWork.UsersRepository.GetAll();
+            IEnumerable<User> users = usersService.GetAll();
             List<ViewUsersViewModel> viewModels = new List<ViewUsersViewModel>();
             foreach (User user in users)
             {
@@ -79,7 +83,7 @@ namespace RushHour.Controllers
 
         public ActionResult EditUser(int id)
         {
-            User dbUser = unitOfWork.UsersRepository.GetById(id);
+            User dbUser = usersService.GetById(id);
             if (dbUser == null)
             {
                 TempData["ErrorMessage"] = "There is no existing user with that id.";
@@ -98,9 +102,9 @@ namespace RushHour.Controllers
         [ValidateAntiForgeryToken]
         public ActionResult EditUser(EditUserViewModel viewModel)
         {
-            if (ModelState.IsValid)
+            if (usersService.IsValidModelState())
             {
-                User dbUser = unitOfWork.UsersRepository.GetById(viewModel.UserId);
+                User dbUser = usersService.GetById(viewModel.UserId);
                 if (dbUser == null)
                 {
                     TempData["ErrorMessage"] = "There is no existing user with that id.";
@@ -110,8 +114,7 @@ namespace RushHour.Controllers
                 dbUser.Email = viewModel.Email;
                 dbUser.Name = viewModel.Name;
                 dbUser.IsAdmin = viewModel.IsAdmin;
-                unitOfWork.UsersRepository.Edit(dbUser);
-                bool hasSuccessfullySaved = unitOfWork.Save();
+                bool hasSuccessfullySaved = usersService.Edit(dbUser);
                 if (hasSuccessfullySaved)
                 {
                     TempData["SuccessfullMessage"] = "User edited successfully.";
@@ -129,15 +132,14 @@ namespace RushHour.Controllers
 
         public ActionResult DeleteUser(int id)
         {
-            User dbUser = unitOfWork.UsersRepository.GetById(id);
+            User dbUser = usersService.GetById(id);
             if (dbUser == null)
             {
                 TempData["ErrorMessage"] = "No user with that id exists";
                 return RedirectToAction("Index", "Home");
             }
 
-            unitOfWork.UsersRepository.Delete(dbUser);
-            bool hasSuccessfullySaved = unitOfWork.Save();
+            bool hasSuccessfullySaved = usersService.Delete(dbUser);
             if (hasSuccessfullySaved)
             {
                 TempData["SuccessfullMessage"] = "User deleted successfully";

@@ -74,5 +74,12 @@ namespace Services
         {
             return unitOfWork.UsersRepository.IsExistingEntity(filter);
         }
+
+        public bool Delete(User dbUser)
+        {
+            unitOfWork.UsersRepository.Delete(dbUser);
+            bool hasSuccessfullySaved = unitOfWork.Save();
+            return hasSuccessfullySaved;
+        }
     }
 }
