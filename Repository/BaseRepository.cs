@@ -36,22 +36,28 @@ namespace Repository
 
         public virtual IEnumerable<T> GetAll(Func<T, bool> filter = null)
         {
-            List<T> items = context.Set<T>().ToList();
+            DbSet<T> set = context.Set<T>();
             if (filter != null)
             {
                 IEnumerable<T> filteredItems = new List<T>();
-                filteredItems = items.Where(filter);
+                filteredItems = set.Where(filter);
                 return filteredItems;
             }
             else
             {
-                return items;
+                return set.ToList();
             }
         }
 
         public virtual T GetById(int id)
         {
             return context.Set<T>().Find(id);
+        }
+
+        public virtual bool IsExistingEntity(Func<T, bool> filter)
+        {
+            bool isExistingEntity = context.Set<T>().Any(filter);
+            return isExistingEntity;
         }
     }
 }

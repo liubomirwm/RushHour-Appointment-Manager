@@ -7,17 +7,22 @@ using System.Linq;
 using System.Web;
 using System.Web.Mvc;
 using RushHour.Attributes;
+using Services;
 
 namespace RushHour.Controllers
 {
     [CustomAuthorize(Enums.CustomAuthorizeEnum.Admin)]
     public class ActivitiesController : Controller
     {
-        UnitOfWork unitOfWork = new UnitOfWork();
+        ActivitiesService activitiesService;
+        public ActivitiesController()
+        {
+            this.activitiesService = new ActivitiesService(new ModelStateWrapper(this.ModelState), new UnitOfWork());
+        }
 
         public ActionResult ViewActivities()
         {
-            IEnumerable<Activity> activities = unitOfWork.ActivitiesRepository.GetAll();
+            IEnumerable<Activity> activities = activitiesService.GetAll();
             List<ViewActivitiesViewModel> viewModels = new List<ViewActivitiesViewModel>();
             foreach (Activity activity in activities)
             {
@@ -40,21 +45,19 @@ namespace RushHour.Controllers
         [ValidateAntiForgeryToken]
         public ActionResult AddActivity(AddActivityViewModel viewModel)
         {
-            if (ModelState.IsValid)
+            if (activitiesService.IsValidModelState())
             {
                 Activity activity = new Activity();
                 activity.ActivityId = 0;
                 activity.Duration = viewModel.Duration;
                 activity.Name = viewModel.Name;
                 activity.Price = viewModel.Price;
-                if (unitOfWork.ActivitiesRepository.GetAll().Any(a => a.Name == viewModel.Name))
+                if (activitiesService.IsExistingActivity(a => a.Name == activity.Name))
                 {
-                    ModelState.AddModelError("ExistingActivity", "There is already an activity with the same name in the database");
                     return View(viewModel);
                 }
 
-                unitOfWork.ActivitiesRepository.Add(activity);
-                bool hasSuccessfullySaved = unitOfWork.Save();
+                bool hasSuccessfullySaved = activitiesService.Add(activity);
                 if (hasSuccessfullySaved)
                 {
                     TempData["SuccessfullMessage"] = "Activity added successfully!";
@@ -72,7 +75,7 @@ namespace RushHour.Controllers
 
         public ActionResult EditActivity(int id)
         {
-            Activity activity = unitOfWork.ActivitiesRepository.GetById(id);
+            Activity activity = activitiesService.GetById(id);
             if (activity == null)
             {
                 TempData["ErrorMessage"] = "There is no activity with this id";
@@ -90,22 +93,21 @@ namespace RushHour.Controllers
         [ValidateAntiForgeryToken]
         public ActionResult EditActivity(EditActivityViewModel viewModel)
         {
-            if (ModelState.IsValid)
+            if (activitiesService.IsValidModelState())
             {
-                bool isExistingActivity = unitOfWork.ActivitiesRepository.GetAll(a => a.ActivityId == viewModel.ActivityId).Any();
+                bool isExistingActivity = activitiesService.IsExistingActivity(a => a.ActivityId == viewModel.ActivityId);
                 if (isExistingActivity == false)
                 {
                     TempData["ErrorMessage"] = "There is no existing activity with that id. You can add one if you want.";
                     return RedirectToAction("ViewActivities", "Activities");
                 }
 
-                Activity dbActivity = unitOfWork.ActivitiesRepository.GetById(viewModel.ActivityId);
+                Activity dbActivity = activitiesService.GetById(viewModel.ActivityId);
                 dbActivity.ActivityId = viewModel.ActivityId;
                 dbActivity.Duration = viewModel.Duration;
                 dbActivity.Name = viewModel.Name;
                 dbActivity.Price = viewModel.Price;
-                unitOfWork.ActivitiesRepository.Edit(dbActivity);
-                bool hasSuccessfullySaved = unitOfWork.Save();
+                bool hasSuccessfullySaved = activitiesService.Edit(dbActivity);
                 if (hasSuccessfullySaved)
                 {
                     TempData["SuccessfullMessage"] = "Activity edited successfully";
@@ -123,15 +125,14 @@ namespace RushHour.Controllers
 
         public ActionResult DeleteActivity(int id)
         {
-            Activity dbActivity = unitOfWork.ActivitiesRepository.GetById(id);
+            Activity dbActivity = activitiesService.GetById(id);
             if (dbActivity == null)
             {
                 TempData["ErrorMessage"] = "There is no existing activity with that id";
                 return RedirectToAction("ViewActivities", "Activities");
             }
 
-            unitOfWork.ActivitiesRepository.Delete(dbActivity);
-            bool hasSuccessfullySaved = unitOfWork.Save();
+            bool hasSuccessfullySaved = activitiesService.Delete(dbActivity);
             if (hasSuccessfullySaved)
             {
                 TempData["SuccessfullMessage"] = "Activity successfully deleted";

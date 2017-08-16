@@ -9,12 +9,18 @@ using Repository;
 using RushHour.Helpers;
 using RushHour.Attributes;
 using RushHour.Enums;
+using Services;
 
 namespace RushHour.Controllers
 {
     public class AccountController : Controller
     {
-        UnitOfWork unitOfWork = new UnitOfWork();
+        public UsersService usersService;
+
+        public AccountController()
+        {
+            usersService = new UsersService(new ModelStateWrapper(this.ModelState), new UnitOfWork());
+        }
 
         [CustomAuthorize(CustomAuthorizeEnum.AnonymousUser)]
         public ActionResult Login()
@@ -27,18 +33,16 @@ namespace RushHour.Controllers
         [CustomAuthorize(CustomAuthorizeEnum.AnonymousUser)]
         public ActionResult Login(LoginViewModel viewModel)
         {
-            if (ModelState.IsValid)
+            if (usersService.IsValidModelState())
             {
-                DataAccess.Models.User dbUser = unitOfWork.UsersRepository.GetAll(u => u.Email == viewModel.Email && u.Password == viewModel.Password).FirstOrDefault();
-                if (dbUser != null)
+                if (usersService.AuthenticateUser(viewModel.Email, viewModel.Password))
                 {
+                    User dbUser = usersService.GetAll(u => u.Email == viewModel.Email && u.Password == viewModel.Password).FirstOrDefault();
                     LoginUserSession.Current.SetCurrentUser(dbUser.UserId, dbUser.Email, dbUser.Name, dbUser.IsAdmin);
                     return RedirectToAction("Index", "Home");
-
                 }
                 else
                 {
-                    ModelState.AddModelError("wrongCredentials", "Wrong password or not existing account.");
                     return View(viewModel);
                 }
             }
@@ -47,10 +51,9 @@ namespace RushHour.Controllers
         }
 
         [CustomAuthorize(CustomAuthorizeEnum.AnonymousUser)]
-        public ActionResult Register()
+        public ActionResult Register() //TODO: Add phone
         {
-            RegisterViewModel viewModel = new RegisterViewModel();
-            return View(viewModel);
+            return View();
         }
 
         [HttpPost]
@@ -58,7 +61,7 @@ namespace RushHour.Controllers
         [CustomAuthorize(CustomAuthorizeEnum.AnonymousUser)]
         public ActionResult Register(RegisterViewModel viewModel)
         {
-            if (ModelState.IsValid)
+            if (usersService.IsValidModelState())
             {
                 User user = new User()
                 {
@@ -70,8 +73,7 @@ namespace RushHour.Controllers
                 bool hasSuccessfullySaved = true;
                 try
                 {
-                    unitOfWork.UsersRepository.Add(user);
-                    hasSuccessfullySaved = unitOfWork.Save();
+                    hasSuccessfullySaved = usersService.AddUser(user);
                 }
                 catch (System.Data.SqlClient.SqlException)
                 {
@@ -106,18 +108,18 @@ namespace RushHour.Controllers
         {
             if (acceptOwnEmail && LoginUserSession.Current.IsAdmin)
             {
-                string currentEmail = unitOfWork.UsersRepository.GetById(UserId).Email;
-                bool isExistingEmail = unitOfWork.UsersRepository.GetAll().Any(u => u.Email == Email && Email != currentEmail);
+                string currentEmail = usersService.GetById(UserId).Email;
+                bool isExistingEmail = usersService.IsExistingEntity(u => u.Email == Email && Email != currentEmail);
                 return Json(!isExistingEmail, JsonRequestBehavior.AllowGet);
             }
             else if (acceptOwnEmail)
             {
-                bool isExistingEmail = unitOfWork.UsersRepository.GetAll().Any(u => u.Email == Email && Email != LoginUserSession.Current.Email);
+                bool isExistingEmail = usersService.IsExistingEntity(u => u.Email == Email && Email != LoginUserSession.Current.Email);
                 return Json(!isExistingEmail, JsonRequestBehavior.AllowGet);
             }
             else
             {
-                bool isExistingEmail = unitOfWork.UsersRepository.GetAll().Any(u => u.Email == Email);
+                bool isExistingEmail = usersService.IsExistingEntity(u => u.Email == Email);
                 return Json(!isExistingEmail, JsonRequestBehavior.AllowGet);
             }
         }
@@ -127,7 +129,7 @@ namespace RushHour.Controllers
         public ActionResult Edit()
         {
             User dbUser = new User();
-            dbUser = unitOfWork.UsersRepository.GetById(LoginUserSession.Current.UserId);
+            dbUser = usersService.GetById(LoginUserSession.Current.UserId);
             EditProfileViewModel viewModel = new EditProfileViewModel();
             viewModel.Email = dbUser.Email;
             viewModel.Name = dbUser.Name;
@@ -143,14 +145,13 @@ namespace RushHour.Controllers
         {
             if (ModelState.IsValid)
             {
-                DataAccess.Models.User user = unitOfWork.UsersRepository.GetById(LoginUserSession.Current.UserId);
+                User user = usersService.GetById(LoginUserSession.Current.UserId);
                 user.Email = viewModel.Email;
                 user.Name = viewModel.Name;
-                unitOfWork.UsersRepository.Edit(user);
                 bool hasSuccessfullyEdited = true;
                 try
                 {
-                    hasSuccessfullyEdited = unitOfWork.Save();
+                    hasSuccessfullyEdited = usersService.Edit(user);
                 }
                 catch (System.Data.SqlClient.SqlException)
                 {

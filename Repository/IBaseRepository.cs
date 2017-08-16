@@ -6,7 +6,7 @@ using System.Threading.Tasks;
 
 namespace Repository
 {
-    interface IBaseRepository<T>
+    public interface IBaseRepository<T>
     {
         IEnumerable<T> GetAll(Func<T, bool> filter = null);
         T GetById(int id);
