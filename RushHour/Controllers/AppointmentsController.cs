@@ -3,6 +3,7 @@ using Repository;
 using RushHour.Attributes;
 using RushHour.Helpers;
 using RushHour.ViewModels;
+using Services;
 using System;
 using System.Collections.Generic;
 using System.Linq;
@@ -13,12 +14,20 @@ namespace RushHour.Controllers
 {
     public class AppointmentsController : Controller
     {
-        UnitOfWork unitOfWork = new UnitOfWork();
+        private AppointmentsService appointmentsService;
+        private ActivitiesService activitiesService;
+
+        public AppointmentsController()
+        {
+            UnitOfWork unitOfWork = new UnitOfWork();
+            this.appointmentsService = new AppointmentsService(new ModelStateWrapper(this.ModelState), unitOfWork);
+            this.activitiesService = new ActivitiesService(new ModelStateWrapper(this.ModelState), unitOfWork);
+        }
 
         [CustomAuthorize(Enums.CustomAuthorizeEnum.NonAdmin)]
         public ActionResult AddAppointment()
         {
-            IEnumerable<Activity> dbActivities = unitOfWork.ActivitiesRepository.GetAll();
+            IEnumerable<Activity> dbActivities = activitiesService.GetAll();
 
             List<ActivityRow> activityRows = new List<ActivityRow>();
             AddAppointmentViewModel viewModel = new AddAppointmentViewModel();
@@ -43,12 +52,12 @@ namespace RushHour.Controllers
         [CustomAuthorize(Enums.CustomAuthorizeEnum.NonAdmin)]
         public ActionResult AddAppointment(AddAppointmentViewModel viewModel)
         {
-            if (ModelState.IsValid)
+            if (appointmentsService.IsValidModelState())
             {
                 Appointment appointment = new Appointment();
 
                 double summedMinutes = 0;
-                List<Activity> activities = unitOfWork.ActivitiesRepository.GetAll(a => viewModel.CheckedRows.Contains(a.ActivityId)).ToList();
+                List<Activity> activities = activitiesService.GetAll(a => viewModel.CheckedRows.Contains(a.ActivityId)).ToList();
                 foreach (Activity activity in activities)
                 {
                     summedMinutes += activity.Duration;
@@ -61,8 +70,7 @@ namespace RushHour.Controllers
                 DateTime endDateTime = startDateTime.Add(summedDuration);
                 appointment.EndDateTime = endDateTime;
                 appointment.UserId = LoginUserSession.Current.UserId;
-                unitOfWork.AppointmentsRepository.Add(appointment);
-                bool hasSavedSuccessfully = unitOfWork.Save();
+                bool hasSavedSuccessfully = appointmentsService.Add(appointment);
                 if (hasSavedSuccessfully)
                 {
                     TempData["SuccessfullMessage"] = "Appointment added successfully";
@@ -84,11 +92,11 @@ namespace RushHour.Controllers
             List<Appointment> appointments = new List<Appointment>();
             if (LoginUserSession.Current.IsAdmin)
             {
-                appointments = unitOfWork.AppointmentsRepository.GetAll().ToList();
+                appointments = appointmentsService.GetAll().ToList();
             }
             else
             {
-                appointments = unitOfWork.AppointmentsRepository.GetAll(a => a.UserId == LoginUserSession.Current.UserId).ToList();
+                appointments = appointmentsService.GetAll(a => a.UserId == LoginUserSession.Current.UserId).ToList();
             }
 
             List<ViewAppointmentsViewModel> viewModels = new List<ViewAppointmentsViewModel>();
@@ -109,7 +117,7 @@ namespace RushHour.Controllers
         [CustomAuthorize(Enums.CustomAuthorizeEnum.NonAdmin)]
         public ActionResult EditAppointment(int id)
         {
-            Appointment dbAppointment = unitOfWork.AppointmentsRepository.GetById(id);
+            Appointment dbAppointment = appointmentsService.GetById(id);
             if (dbAppointment.UserId != LoginUserSession.Current.UserId)
             {
                 TempData["ErrorMessage"] = "Appointments does not exist or you have no rights to edit";
@@ -121,7 +129,7 @@ namespace RushHour.Controllers
             viewModel.AppointmentId = dbAppointment.AppointmentId;
             viewModel.StartDateTime = dbAppointment.StartDateTime;
             viewModel.EndDateTime = dbAppointment.EndDateTime;
-            List<Activity> dbActivities = unitOfWork.ActivitiesRepository.GetAll().ToList();
+            List<Activity> dbActivities = activitiesService.GetAll().ToList();
             foreach (Activity activity in dbActivities)
             {
                 ActivityRow activityRow = new ActivityRow();
@@ -149,13 +157,13 @@ namespace RushHour.Controllers
         [CustomAuthorize(Enums.CustomAuthorizeEnum.NonAdmin)]
         public ActionResult EditAppointment(EditAppointmentViewModel viewModel)
         {
-            if (ModelState.IsValid)
+            if (appointmentsService.IsValidModelState())
             {
-                Appointment dbAppointment = unitOfWork.AppointmentsRepository.GetById(viewModel.AppointmentId);
+                Appointment dbAppointment = appointmentsService.GetById(viewModel.AppointmentId);
                 dbAppointment.StartDateTime = viewModel.StartDateTime;
                 double summedMinutes = 0;
                 dbAppointment.Activities.Clear();
-                List<Activity> activities = unitOfWork.ActivitiesRepository.GetAll(a => viewModel.CheckedRows.Contains(a.ActivityId)).ToList();
+                List<Activity> activities = activitiesService.GetAll(a => viewModel.CheckedRows.Contains(a.ActivityId)).ToList();
                 foreach (Activity activity in activities)
                 {
                     summedMinutes += activity.Duration;
@@ -168,8 +176,7 @@ namespace RushHour.Controllers
                 DateTime endDateTime = startDateTime.Add(summedDuration);
                 dbAppointment.EndDateTime = endDateTime;
                 dbAppointment.UserId = LoginUserSession.Current.UserId;
-                unitOfWork.AppointmentsRepository.Edit(dbAppointment);
-                bool hasSavedSuccessfully = unitOfWork.Save();
+                bool hasSavedSuccessfully = appointmentsService.Edit(dbAppointment);
                 if (hasSavedSuccessfully)
                 {
                     TempData["SuccessfullMessage"] = "Appointment added successfully";
@@ -187,13 +194,12 @@ namespace RushHour.Controllers
         [CustomAuthorize(Enums.CustomAuthorizeEnum.NonAdmin)]
         public ActionResult CancelAppointment(int id)
         {
-            Appointment dbAppointment = unitOfWork.AppointmentsRepository.GetById(id);
+            Appointment dbAppointment = appointmentsService.GetById(id);
             dbAppointment.IsCancelled = true;
-            unitOfWork.AppointmentsRepository.Edit(dbAppointment);
-            bool hasSuccessfullySaved = true;
+            bool hasSuccessfullySaved;
             try
             {
-                hasSuccessfullySaved = unitOfWork.Save();
+                hasSuccessfullySaved = appointmentsService.Edit(dbAppointment);
             }
             catch (System.Data.SqlClient.SqlException)
             {

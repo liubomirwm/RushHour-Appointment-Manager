@@ -63,6 +63,7 @@
   </ItemGroup>
   <ItemGroup>
     <Compile Include="ActivitiesService.cs" />
+    <Compile Include="AppointmentsService.cs" />
     <Compile Include="IValidationDictionary.cs" />
     <Compile Include="ModelStateWrapper.cs" />
     <Compile Include="Properties\AssemblyInfo.cs" />

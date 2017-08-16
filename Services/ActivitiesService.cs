@@ -10,18 +10,18 @@ namespace Services
 {
     public class ActivitiesService
     {
-        private IValidationDictionary dictionary;
+        private IValidationDictionary validationDictionary;
         private UnitOfWork unitOfWork;
 
-        public ActivitiesService(IValidationDictionary dictionary, UnitOfWork unitOfWork)
+        public ActivitiesService(IValidationDictionary validationDictionary, UnitOfWork unitOfWork)
         {
-            this.dictionary = dictionary;
+            this.validationDictionary = validationDictionary;
             this.unitOfWork = unitOfWork;
         }
 
         public bool IsValidModelState()
         {
-            if (this.dictionary.IsValid)
+            if (this.validationDictionary.IsValid)
             {
                 return true;
             }
@@ -48,7 +48,7 @@ namespace Services
         {
             if (IsExistingActivity(a => a.Name == activity.Name))
             {
-                dictionary.AddModelError("ExistingActivity", "There is already an activity with the same name in the database");
+                validationDictionary.AddModelError("ExistingActivity", "There is already an activity with the same name in the database");
                 bool hasSuccessfullySaved = false;
                 return hasSuccessfullySaved;
             }
