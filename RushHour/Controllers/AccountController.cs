@@ -19,13 +19,13 @@ namespace RushHour.Controllers
 
         public AccountController()
         {
-            usersService = new UsersService(new ModelStateWrapper(this.ModelState), new UnitOfWork());
+            this.usersService = new UsersService(new ModelStateWrapper(this.ModelState), new UnitOfWork());
         }
 
         [CustomAuthorize(CustomAuthorizeEnum.AnonymousUser)]
         public ActionResult Login()
         {
-            return View();
+            return this.View();
         }
 
         [HttpPost]
@@ -33,27 +33,27 @@ namespace RushHour.Controllers
         [CustomAuthorize(CustomAuthorizeEnum.AnonymousUser)]
         public ActionResult Login(LoginViewModel viewModel)
         {
-            if (usersService.IsValidModelState())
+            if (this.usersService.IsValidModelState())
             {
-                if (usersService.AuthenticateUser(viewModel.Email, viewModel.Password))
+                if (this.usersService.AuthenticateUser(viewModel.Email, viewModel.Password))
                 {
-                    User dbUser = usersService.GetAll(u => u.Email == viewModel.Email && u.Password == viewModel.Password).FirstOrDefault();
+                    User dbUser = this.usersService.GetAll(u => u.Email == viewModel.Email && u.Password == viewModel.Password).FirstOrDefault();
                     LoginUserSession.Current.SetCurrentUser(dbUser.UserId, dbUser.Email, dbUser.Name, dbUser.IsAdmin);
-                    return RedirectToAction("Index", "Home");
+                    return this.RedirectToAction("Index", "Home");
                 }
                 else
                 {
-                    return View(viewModel);
+                    return this.View(viewModel);
                 }
             }
 
-            return View(viewModel);
+            return this.View(viewModel);
         }
 
         [CustomAuthorize(CustomAuthorizeEnum.AnonymousUser)]
-        public ActionResult Register() //TODO: Add phone
+        public ActionResult Register() // TODO: Add phone
         {
-            return View();
+            return this.View();
         }
 
         [HttpPost]
@@ -61,7 +61,7 @@ namespace RushHour.Controllers
         [CustomAuthorize(CustomAuthorizeEnum.AnonymousUser)]
         public ActionResult Register(RegisterViewModel viewModel)
         {
-            if (usersService.IsValidModelState())
+            if (this.usersService.IsValidModelState())
             {
                 User user = new User()
                 {
@@ -73,7 +73,7 @@ namespace RushHour.Controllers
                 bool hasSuccessfullySaved = true;
                 try
                 {
-                    hasSuccessfullySaved = usersService.AddUser(user);
+                    hasSuccessfullySaved = this.usersService.AddUser(user);
                 }
                 catch (System.Data.SqlClient.SqlException)
                 {
@@ -85,7 +85,7 @@ namespace RushHour.Controllers
                 }
                 else
                 {
-                    TempData["ErrorMessage"] = "There was a server error during the registration. Please try again!";
+                    this.TempData["ErrorMessage"] = "There was a server error during the registration. Please try again!";
                 }
 
                 return RedirectToAction("Index", "Home");
@@ -104,13 +104,13 @@ namespace RushHour.Controllers
         }
         [HttpGet]
         [CustomAuthorize(CustomAuthorizeEnum.Everyone)]
-        public JsonResult IsExistingEmail(string Email, bool acceptOwnEmail = false, int UserId = 0) //You better don't change UserId to userId ;)
+        public JsonResult IsExistingEmail(string Email, bool acceptOwnEmail = false, int UserId = 0) // You better don't change UserId to userId ;)
         {
             if (acceptOwnEmail && LoginUserSession.Current.IsAdmin)
             {
-                string currentEmail = usersService.GetById(UserId).Email;
-                bool isExistingEmail = usersService.IsExistingEntity(u => u.Email == Email && Email != currentEmail);
-                return Json(!isExistingEmail, JsonRequestBehavior.AllowGet);
+                string currentEmail = this.usersService.GetById(UserId).Email;
+                bool isExistingEmail = this.usersService.IsExistingEntity(u => u.Email == Email && Email != currentEmail);
+                return this.Json(!isExistingEmail, JsonRequestBehavior.AllowGet);
             }
             else if (acceptOwnEmail)
             {

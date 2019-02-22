@@ -118,36 +118,15 @@ namespace RushHour.Controllers
         public ActionResult EditAppointment(int id)
         {
             Appointment dbAppointment = appointmentsService.GetById(id);
-            if (dbAppointment.UserId != LoginUserSession.Current.UserId)
+            var redirectResult = GetRedirectIfAppointmentNotOwned(dbAppointment);
+            if (redirectResult != null)
             {
-                TempData["ErrorMessage"] = "Appointments does not exist or you have no rights to edit";
-                return RedirectToAction("Index", "Home");
+                return redirectResult;
             }
 
-            List<ActivityRow> activityRows = new List<ActivityRow>();
-            EditAppointmentViewModel viewModel = new EditAppointmentViewModel();
-            viewModel.AppointmentId = dbAppointment.AppointmentId;
-            viewModel.StartDateTime = dbAppointment.StartDateTime;
-            viewModel.EndDateTime = dbAppointment.EndDateTime;
-            List<Activity> dbActivities = activitiesService.GetAll().ToList();
-            foreach (Activity activity in dbActivities)
-            {
-                ActivityRow activityRow = new ActivityRow();
-                activityRow.activity = activity;
-                activityRow.isChecked = false;
-                activityRows.Add(activityRow);
-            }
-
-            foreach (ActivityRow activityRow in activityRows)
-            {
-                foreach (Activity activity in dbAppointment.Activities)
-                {
-                    if (activityRow.activity.ActivityId == activity.ActivityId)
-                    {
-                        activityRow.isChecked = true;
-                    }
-                }
-            }
+            List<ActivityRow> activityRows = GetActivityRowsForAllActivities();
+            EditAppointmentViewModel viewModel = CreateViewModelFromAppointment(dbAppointment);
+            MarkActivityRowsForAppointmentActivitiesAsChecked(activityRows, dbAppointment.Activities);
             viewModel.activityRows = activityRows;
             return View(viewModel);
         }
@@ -215,6 +194,55 @@ namespace RushHour.Controllers
             }
 
             return RedirectToAction("ViewAppointments", "Appointments");
+        }
+
+        private EditAppointmentViewModel CreateViewModelFromAppointment(Appointment appointment)
+        {
+            EditAppointmentViewModel viewModel = new EditAppointmentViewModel();
+            viewModel.AppointmentId = appointment.AppointmentId;
+            viewModel.StartDateTime = appointment.StartDateTime;
+            viewModel.EndDateTime = appointment.EndDateTime;
+            return viewModel;
+        }
+
+        private ActionResult GetRedirectIfAppointmentNotOwned(Appointment appointment)
+        {
+            if (appointment.UserId != LoginUserSession.Current.UserId)
+            {
+                TempData["ErrorMessage"] = "Appointments does not exist or you have no rights to edit";
+                return RedirectToAction("Index", "Home");
+            }
+
+            return null;
+        }
+
+        private List<ActivityRow> GetActivityRowsForAllActivities()
+        {
+            List<ActivityRow> activityRows = new List<ActivityRow>();
+            List<Activity> dbActivities = activitiesService.GetAll().ToList();
+            foreach (Activity activity in dbActivities)
+            {
+                ActivityRow activityRow = new ActivityRow();
+                activityRow.activity = activity;
+                activityRow.isChecked = false;
+                activityRows.Add(activityRow);
+            }
+
+            return activityRows;
+        }
+
+        private void MarkActivityRowsForAppointmentActivitiesAsChecked(List<ActivityRow> activityRows, ICollection<Activity> activities)
+        {
+            foreach (ActivityRow activityRow in activityRows)
+            {
+                foreach (Activity activity in activities)
+                {
+                    if (activityRow.activity.ActivityId == activity.ActivityId)
+                    {
+                        activityRow.isChecked = true;
+                    }
+                }
+            }
         }
     }
 }

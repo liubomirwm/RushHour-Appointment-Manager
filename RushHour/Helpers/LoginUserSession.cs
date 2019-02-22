@@ -7,15 +7,12 @@ namespace RushHour.Helpers
 {
     public class LoginUserSession
     {
-        #region Properties
         public int UserId { get; private set; }
         public string Email { get; set; }
         public string Name { get; set; }
         public bool IsAuthenticated { get; private set; }
         public bool IsAdmin { get; private set; }
-        #endregion
 
-        #region Properties
         public static LoginUserSession Current
         {
             get
@@ -29,9 +26,7 @@ namespace RushHour.Helpers
                 return loginUserSession;
             }
         }
-        #endregion
 
-        #region Methods
         public void SetCurrentUser(int userId, string email, string name, bool isAdmin)
         {
             this.UserId = userId;
@@ -49,6 +44,5 @@ namespace RushHour.Helpers
             this.Name = null;
             this.IsAdmin = false;
         }
-        #endregion
     }
 }
